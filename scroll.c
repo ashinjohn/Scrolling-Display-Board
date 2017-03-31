@@ -3,8 +3,83 @@
 #include <util/delay.h>
 
 #include<avr/interrupt.h>
+
+int t;
+
+char s9[]={"CONNECTING MODEM"};
+
+char s6[]={"LINK STABLE"};
+char s7[]={"MESSAGE DISPLAY"};
+char s8[]={" DEVICE READY"};
+char su[]={" UNKNOWN NUMBER"};
+
+
+//   new data
+
+int stop=0;
+
+char a[30];
+
+
+void scroll(char arr[])
+{
+	lcd_cmd1(0x01);
+	lcd_cmd2(0x01);
+	lcd_cmd1(0x80);
+	lcd_cmd2(0x80); 
+ 
+ int b=0;
+while (1)
+{
+ 
+ for (b=0;b<32;b++) // to circle main
+ {
+ 
+ 	for (int c=0;c<=b;c++)
+	{ 
+	if (b<15) 
+	lcd_data1(' ');    //space boy
+	else
+	lcd_data2(' ');
+	}
+
+   for (int d=0;arr[d]!='*';d++)
+	{
+	if (d<15-b) 
+	lcd_data1(arr[d]);    //matter
+	else
+	lcd_data2(arr[d]);
+	}
+
+
+ 	lcd_cmd1(0x01);
+	lcd_cmd2(0x01);
+	lcd_cmd1(0x80);
+	lcd_cmd2(0x80); 
+
+if (b>30)
+	b=0;
+ 
+ 
+ 
+ } //for loop main circle 
+
+} //whole while group
+} // scroll
+
+ // *************
+
+
+int fail=0;
+int has=0;
+int was=0;	
+	
+
+char pass[7]={'P','A','S','S','W','O','R','D'};
+
 char chek[3]={'+','C','M','T'};
 char mc[1]={'O','K'};
+
 
 char mmn=48;
 int luk=0;
@@ -30,107 +105,6 @@ void lcd_cmd2 (char cmd);
 void lcd_data2 (char dat);
 
 
-char a[30]={'S','C','R','O','L','L','I','N','G',' ','D','I','S','P','L','A','Y','.'};
-
-void scroll(char arr[])
-{
-
- 
- int b=0;
-while (1)
-{
- start:	lcd_cmd1(0x01);
-	lcd_cmd2(0x01);
-	lcd_cmd1(0x80);
-	lcd_cmd2(0x80); 
- for (b=0;b<32;b++) // to circle main
- {
- 
- 		for (int c=0;c<=b;c++)
-		{ 
-		if (b<15) 
-		lcd_data1(' ');    //space boy
-		else
-		lcd_data2(' ');
-		}
-
-  	 	for (int d=0;arr[d]!='.';d++)
-		{
-		if (d<15-b) 
-		lcd_data1(arr[d]);    //matter
-		else
-		lcd_data2(arr[d]);
-		}
-
-
- 		lcd_cmd1(0x01);
-		lcd_cmd2(0x01);
-		lcd_cmd1(0x80);
-		lcd_cmd2(0x80); 
-
-	if (b>30)
-	{
-		lcd_cmd1(0x01);
-		lcd_cmd2(0x01);
-		lcd_cmd1(0xC0);
-		lcd_cmd2(0xC0);
-
-
-
-		for (b=0;b<32;b++) // to circle main
- 	 	{
- 
-	
-			for (int c=0;c<=b;c++)
-			{ 
-			if (b<15) 
-			{
-			lcd_data1(' ');    //space boy
-		//	_delay_ms(100);
-			}
-			else
-			{
-			lcd_data2(' ');
-		//	_delay_ms(100);
-			}
-			}
-
-   			for (int d=0;arr[d]!='.';d++)
-			{
-			if (d<15-b) 
-			{
-			lcd_data1(arr[d]);    //matter
-		//	_delay_ms(100);
-			}
-			else
-			{
-			lcd_data2(arr[d]);
-		//	_delay_ms(100);
-			}
-	
-			} //for
-		
-		if (b>30)
-		 { b=0;   break;  }
-	
-	
-	 	lcd_cmd1(0x01);
-		lcd_cmd2(0x01);
-		lcd_cmd1(0xC0);
-		lcd_cmd2(0xC0);
-
-		}
-
-	} //b>30
- 
- 
- 
- } //for loop main circle 
-
-} //whole while group
-} // scroll
-
-
 #include<string.h>
 volatile unsigned char stor[100];
 volatile unsigned char numsor[100];
@@ -153,9 +127,6 @@ ptr++;
 ISR(USART_RXC_vect) // used to give location of interuppt
     {
 	
-	
-
-
 	value = UDR;	// data comes by the name UDR
 
 	
@@ -186,64 +157,150 @@ ISR(USART_RXC_vect) // used to give location of interuppt
 	
    if (startstor==1)
    {
-     if (po<18&&po>7)//>7
-  { 
-   numsor[kin]= value; 
-//  send_char(value);
-   kin++;
-   
-   
-   }
+    	 if (po<18&&po>7)//>7
+	  	 { 
+   		  numsor[kin]= value; 
 
+  		 kin++;
+		 }
+
+		if (po>40&&stop==0)// gsm 40 57
+   		{ 
+ 		stor[len]= value; 
+
+   		len++;
+  		 mmn++;
+   
+  		 if (value=='.')
+ 		{
+		stop=1;
+		} 
   
-   	if (po>40&&po<57)
-   { 
-   stor[len]= value; 
- send_char(value);   // Print content of text SMS
-
-   len++;
-   mmn++;
-   
+  
    }
    
    
 po++;
 
  
- 		 if (len>15)   //15
+ 		 if (stop==1)   //gsm 15  27
  {
+	lcd_cmd1(0x01);
+   lcd_cmd1(0x80);
+	
+	
+	for ( int queen =0 ;queen<10; queen++)
+	   lcd_data1(numsor[queen]);
 
-//   	lcd_cmd(0x80);
+		_delay_ms(1000);
+	
+	
 	for(i=0;i<=9;i++)
    {
- //   lcd_data(numsor[i]);
-	if(numsor[i]!=mynum[i])
+ 		if(numsor[i]!=mynum[i])
+		{
+		wrong_number=1;
+ 	
+	     	lcd_cmd1(0xC0);
+				for (t=0;t<strlen(su);t++)
+			{
+			 lcd_data1(su[t]);  // unknown number
+			}
+
+		break;
+		}
+	} 
+	  
+lcd_cmd1(0xC0);
+ 
+ 	
+// WHERE THINGS HAPPEN
+
+lcd_cmd1(0x01);
+
+int boss;
+
+
+
+int kid;
+int k;
+
+int sea;
+
+// startng location ... p.. 6
+
+/*
+for(sea=6;stor[sea]!='*';sea++)
+{	
+	lcd_data(stor[sea]);
+	
+	if (stor[sea]=='*')
+	while(1);
+}
+
+*/
+
+
+
+
+
+	for(kid=6,k=0;k<=6;kid++,k++)
 	{
-	wrong_number=1;
- 	break;
-	}
-	}   
-//lcd_cmd(0xC0);
-//    lcd_data(stor[12]); 
- //   lcd_data(stor[15]); 
 
 
-	wrong_number=0;
+ 		if(stor[kid]!=pass[k])
+ 		{ 
+ 		fail=1;
+ 
+ 			char SHOW1[]={" NEED SHIFTING"};
+ 			char SHOW2[]={" WRONG PASSWORD"};
 
-   
-   
-   
+			lcd_cmd1(0x01);  // clear display
+			lcd_cmd1(0x80);  // first row first location
 
 
+
+			for (t=0;t<strlen(SHOW1);t++)
+				{
+	// 	lcd_data(SHOW1[t]);  // SHIFTING
+				}
+
+
+				lcd_cmd1(0xC0);
+
+				for (t=0;t<strlen(SHOW2);t++)
+				{
+				lcd_data1(SHOW2[t]);  // WRONG PASSWPRD
+				}
+	break; 
+ 		} // stor kid clsoing
+
+
+
+	} //kid closing
 
 	
-  				for(po=0;po<100;po++)
- 			  stor[po]=' ';
+//	for (boss=14;boss!=was&&fail==0;boss++ )
+
+	int ash;
+	for (boss=15,ash=0;fail==0;boss++,ash++ )
+	{
+	(a[ash]==stor[boss]);
+
+	if (stor[boss]=='*')
+	scroll(a);
+	break;
+	}
+
+   
+   
+		for(po=0;po<100;po++)
+ 		  stor[po]=' ';
 
 			
 
-		 	for(po=0;po<100;po++)
-  			 numsor[po]=' ';
+		for(po=0;po<100;po++)
+  		 numsor[po]=' ';
 
 		 key=0;
 	 	c1=0;
@@ -252,27 +309,30 @@ po++;
 		 po=0;
 		len=0;
 		kin=0;
+		fail=0;
+		stop=0;
+	
 		 
 		 
 		 
-		 }
+	
   
 
 
 	}
 
+
+UCSRA=0x40;
+	UDR=value;
+	while((UCSRA&0x40)==0);
+
+
+ 
 }
+} //vector closing
    
 
-//	UCSRA = 0x40;    // 0100 0000 bit format when data completly transferred 
-	
 
-//	UDR = value+1;   // a => b 
-//	while((UCSRA&0x40)==0); // checks whether data tranferring has been completed
-							// (UCSRA&0x40) will be 0 until data transfer comletes !
-							// jump out when it is not zero
-	
-	
 
 void send_char (volatile unsigned char c ) 
 	{
@@ -319,9 +379,36 @@ lcd_cmd2(0x80);  // first row first location
 // ****************************************************************
 
 
+lcd_cmd1(0x01);	
+lcd_cmd1(0x80);
+for (t=0;t<strlen(s7);t++)
+{
+lcd_data1(s7[t]);  // data to show on lcd
+}
+
+	_delay_ms(5000);
+
+lcd_cmd1(0x01);	
+lcd_cmd1(0x80);
 
 
 
+
+int king;
+
+
+
+
+
+
+
+lcd_cmd1(0x01);	
+lcd_cmd1(0x80);
+
+
+
+
+_delay_ms(100);
 
 DDRB = 0xFF;  //seting port as output 1111 1111
 
@@ -337,46 +424,56 @@ UBRRL = 0x67;// to set baud rate 104
  
  sei();    // global interrupt enable
 
+	lcd_cmd1(0xC0);
+for (t=0;t<strlen(s8);t++)
+{
+lcd_data1(s8[t]);  // data to show on lcd
+}
 
 
-lcd_data1('A');
-lcd_data2('s');
-
-scroll(a);
+_delay_ms(1000);
+lcd_cmd1(0x01);
 
 
+	lcd_cmd1(0x80);
+for (t=0;t<strlen(s9);t++)
+{
+lcd_data1(s9[t]);  // data to show on lcd
+}
 
-
-/*
 while(K_flag==0)
 {
 prints("AT\r\n");
-//lcd_data('.');
+
 _delay_ms(2000);
 }
 
+
 prints("ATE0\r\n");
 
-
+//_delay_ms(2000);
 prints("AT+IPR=9600\r\n");
 
-
+//_delay_ms(2000);
 prints("AT+CMGF=1\r\n");
-
+//_delay_ms(2000);
 
 prints("AT+CNMI=1,2,0,0,0\r\n"); // respond to incomming message
+//_delay_ms(2000);
 
-
-
+	lcd_cmd1(0xC0);
+for (t=0;t<strlen(s6);t++)
+{
+lcd_data1(s6[t]);  // data to show on lcd
+}
 
 sei();
 
-*/
 
  while(1);
 
  } //main
-
+ 	
 
 // ********lcd 1 setup****************************************	
 void lcd_cmd1 (char cmd) // deals with command register
