@@ -34,42 +34,94 @@ char a[30]={'S','C','R','O','L','L','I','N','G',' ','D','I','S','P','L','A','Y',
 
 void scroll(char arr[])
 {
-	lcd_cmd1(0x01);
-	lcd_cmd2(0x01);
-	lcd_cmd1(0x80);
-	lcd_cmd2(0x80); 
+
  
  int b=0;
 while (1)
 {
- 
- for (b=0;b<32;b++) // to circle main
- {
- 
- 	for (int c=0;c<=b;c++)
-	{ 
-	if (b<15) 
-	lcd_data1(' ');    //space boy
-	else
-	lcd_data2(' ');
-	}
-
-   for (int d=0;arr[d]!='.';d++)
-	{
-	if (d<15-b) 
-	lcd_data1(arr[d]);    //matter
-	else
-	lcd_data2(arr[d]);
-	}
-
-
- 	lcd_cmd1(0x01);
+ start:	lcd_cmd1(0x01);
 	lcd_cmd2(0x01);
 	lcd_cmd1(0x80);
 	lcd_cmd2(0x80); 
+ for (b=0;b<32;b++) // to circle main
+ {
+ 
+ 		for (int c=0;c<=b;c++)
+		{ 
+		if (b<15) 
+		lcd_data1(' ');    //space boy
+		else
+		lcd_data2(' ');
+		}
 
-if (b>30)
-	b=0;
+  	 	for (int d=0;arr[d]!='.';d++)
+		{
+		if (d<15-b) 
+		lcd_data1(arr[d]);    //matter
+		else
+		lcd_data2(arr[d]);
+		}
+
+
+ 		lcd_cmd1(0x01);
+		lcd_cmd2(0x01);
+		lcd_cmd1(0x80);
+		lcd_cmd2(0x80); 
+
+	if (b>30)
+	{
+		lcd_cmd1(0x01);
+		lcd_cmd2(0x01);
+		lcd_cmd1(0xC0);
+		lcd_cmd2(0xC0);
+
+
+
+		for (b=0;b<32;b++) // to circle main
+ 	 	{
+ 
+	
+			for (int c=0;c<=b;c++)
+			{ 
+			if (b<15) 
+			{
+			lcd_data1(' ');    //space boy
+		//	_delay_ms(100);
+			}
+			else
+			{
+			lcd_data2(' ');
+		//	_delay_ms(100);
+			}
+			}
+
+   			for (int d=0;arr[d]!='.';d++)
+			{
+			if (d<15-b) 
+			{
+			lcd_data1(arr[d]);    //matter
+		//	_delay_ms(100);
+			}
+			else
+			{
+			lcd_data2(arr[d]);
+		//	_delay_ms(100);
+			}
+	
+			} //for
+		
+		if (b>30)
+		 { b=0;   break;  }
+	
+	
+	 	lcd_cmd1(0x01);
+		lcd_cmd2(0x01);
+		lcd_cmd1(0xC0);
+		lcd_cmd2(0xC0);
+
+		}
+
+	} //b>30
  
  
  
